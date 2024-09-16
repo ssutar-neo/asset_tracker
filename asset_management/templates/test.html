@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Update Asset</title>
+</head>
+<body>
+    <h1>Update Asset</h1>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ asset_form.as_p }}
+        
+        <h2>Manage Images</h2>
+        {{ formset.management_form }}
+        <ul>
+            {% for form in formset %}
+                <li>
+                    {{ form.image.label_tag }} {{ form.image }}
+                    {{ form.caption.label_tag }} {{ form.caption }}
+                    
+                    {% if form.instance.pk %}
+                        <p>Current Image: <img src="{{ form.instance.image.url }}" alt="Current Image" width="100"></p>
+                    {% endif %}
+                    
+                    {{ form.DELETE.label_tag }} {{ form.DELETE }}
+                </li>
+            {% endfor %}
+        </ul>
+        
+        <button type="submit">Save changes</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Asset</title>
+    <style>
+        /* Your existing styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .navbar .brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        .navbar a:hover {
+            background-color: #575757;
+            border-radius: 4px;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            box-sizing: border-box;
+            margin: 2rem auto;
+            margin-top: 6rem; /* Adjust top margin to accommodate fixed navbar */
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 1rem;
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 1rem;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .formset-row {
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">Asset Tracker</div>
+        <div>
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'list_asset_types' %}">Asset Types</a>
+            <a href="{% url 'list_assets' %}">Assets</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Create Asset</h1>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="form-group">
+                <label for="id_name">Asset Name:</label>
+                {{ form.name.errors }}
+                {{ form.name }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_asset_type">Asset Type:</label>
+                {{ form.asset_type.errors }}
+                {{ form.asset_type }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_is_active">Is Active:</label>
+                {{ form.is_active.errors }}
+                {{ form.is_active }}
+            </div>
+
+            <div class="form-group">
+                <label>Asset Images:</label>
+                {{ formset.management_form }}
+
+                <div id="formset-container">
+                    {% for form in formset %}
+                    <div class="formset-row">
+                        {{ form.image.errors }}
+                        {{ form.image.label_tag }} {{ form.image }}
+                        {{ form.caption.errors }}
+                        {{ form.caption.label_tag }} {{ form.caption }}
+                        {% if forloop.first %}
+                        <button type="button" onclick="removeForm(this)">Remove</button>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <button type="button" onclick="addForm()">Add Another Image</button>
+            </div>
+
+            <button type="submit">Create Asset</button>
+        </form>
+        
+        <p><a href="{% url 'list_assets' %}">Back to Asset List</a></p>
+    </div>
+
+    <script>
+        let formIdx = {{ formset.total_form_count }};
+        
+        function addForm() {
+            const formsetContainer = document.getElementById('formset-container');
+            const newFormHtml = `
+                <div class="formset-row">
+                    <input type="file" name="images-${formIdx}-image" />
+                    <input type="text" name="images-${formIdx}-caption" />
+                    <button type="button" onclick="removeForm(this)">Remove</button>
+                </div>
+            `;
+            formsetContainer.insertAdjacentHTML('beforeend', newFormHtml);
+            formIdx++;
+            updateManagementForm();
+        }
+
+        function removeForm(button) {
+            button.parentElement.remove();
+            updateManagementForm();
+        }
+
+        function updateManagementForm() {
+            document.getElementById('id_images-TOTAL_FORMS').value = document.querySelectorAll('#formset-container .formset-row').length;
+        }
+    </script>
+</body>
+</html>

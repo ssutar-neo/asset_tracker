@@ -1,0 +1,174 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asset Dashboard</title>
+    <!-- Basic CSS Styling -->
+    <style>
+        body {
+            /* background-image: url("{% static 'asset_mgmt.jpg' %}"); */
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .navbar {
+            background-color: #333;
+            color: #fff;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navbar a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+        }
+        .navbar a:hover {
+            background-color: #575757;
+            border-radius: 4px;
+        }
+        .navbar .brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #665994;
+        }
+        h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+        .charts {
+            display: flex;
+            justify-content: space-between; /* Space out the charts */
+            flex-wrap: wrap; /* Allows charts to wrap on smaller screens */
+            gap: 1rem; /* Space between charts */
+        }
+        .chart-container {
+            flex: 1;
+            min-width: 400px; /* Ensure charts are responsive */
+            max-width: 400px; /* Optional: Set max width if needed */
+        }
+        canvas {
+            width: 100%; /* Make canvas take full width of its container */
+            height: 400px; /* Set height of canvas */
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .logout {
+            text-align: right;
+            margin-bottom: 1rem;
+        }
+        .logout a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .logout a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="brand">Asset Tracker</div>
+        <div>
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'list_asset_types' %}">Asset Types</a>
+            <a href="{% url 'list_assets' %}">Assets</a>
+            <a href="{% url 'logout' %}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Asset Dashboard</h1>
+
+        <div class="charts">
+            <div class="chart-container">
+                <h2>Asset Distribution by Type</h2>
+                <canvas id="pieChart"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <h2>Active vs. Inactive Assets</h2>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch data for PIE Chart
+            fetch('{% url "asset_types_data" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const labels = data.map(item => item['asset_type__name']);
+                    const counts = data.map(item => item.count);
+                    
+                    const ctxPie = document.getElementById('pieChart').getContext('2d');
+                    new Chart(ctxPie, {
+                        type: 'pie',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: counts,
+                                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56','yellow'] // Customize colors
+                            }]
+                        }
+                    });
+                });
+
+            // Fetch data for BAR Chart
+            fetch('{% url "asset_status_data" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const labels = ['Active', 'Inactive'];
+                    const counts = [
+                        data.find(item => item.is_active === true)?.count || 0,
+                        data.find(item => item.is_active === false)?.count || 0
+                    ];
+                    
+                    const ctxBar = document.getElementById('barChart').getContext('2d');
+                    new Chart(ctxBar, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Active Assets',
+                                data: counts,
+                                backgroundColor: ['#4CAF50', '#F44336'] // Customize colors
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                x: {
+                                    barThickness: 40 // Set the width of each bar in pixels
+                                },
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                });
+        });
+    </script>
+</body>
+</html>
